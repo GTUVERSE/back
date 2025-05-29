@@ -351,7 +351,7 @@ void RoomUserService::addUserToRoom(int userId, int roomId) {
     }
 
     int assignedPlace = -1;
-    for (int port = 72500; port <= 72507; ++port) {
+    for (int port = 52700; port <= 52707; ++port) {
         if (std::find(usedPorts.begin(), usedPorts.end(), port) == usedPorts.end()) {
             assignedPlace = port;
             break;
