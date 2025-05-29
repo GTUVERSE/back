@@ -61,6 +61,17 @@
         "type_traits": "cpp",
         "utility": "cpp",
         "format": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "__locale": "cpp",
+        "__tree": "cpp",
+        "clocale": "cpp",
+        "deque": "cpp",
+        "forward_list": "cpp",
+        "iostream": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "mutex": "cpp",
+        "set": "cpp",
+        "stack": "cpp"
     }
 }

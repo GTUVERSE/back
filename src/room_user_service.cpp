@@ -33,7 +33,7 @@ RoomUserService::RoomUserService()
     roomUsersTable(dbSchema.getTable("room_users"))
 {}
 
-
+/*
       void RoomUserService::addUserToRoom(int userId, int roomId) {
         // Kullanıcı zaten odada mı kontrol et
         if (isUserInRoom(roomId, userId)) {
@@ -64,7 +64,321 @@ RoomUserService::RoomUserService()
     }
 
 
+*/
+/*
+void RoomUserService::addUserToRoom(int userId, int roomId) {
+    // Kullanıcı zaten odada mı kontrol et
+    if (isUserInRoom(roomId, userId)) {
+        return; // Kullanıcı zaten odada, işlem yapma
+    }
 
+    // Odayı getir ve kapasite kontrolü yap
+    auto roomService = RoomService();
+    auto roomOpt = roomService.getRoomById(roomId);
+
+    if (!roomOpt.has_value()) {
+        throw std::runtime_error("Room does not exist");
+    }
+
+    Room room = roomOpt.value();
+
+    // Kapasite kontrolü ve oda güncelleme
+    if (!room.increaseSize()) {
+        throw std::runtime_error("Room is full");
+    }
+
+    // Boşta olan place (port) değerini bul
+    std::vector<int> usedPorts;
+    //auto result = dbSession.sql("SELECT place FROM users WHERE place IS NOT NULL").execute();
+    auto result = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE place IS NOT NULL").execute();
+
+    for (auto row : result) {
+        usedPorts.push_back(row[0].get<int>());
+    }
+
+    int assignedPlace = -1;
+    for (int port = 72500; port <= 72507; ++port) {
+        if (std::find(usedPorts.begin(), usedPorts.end(), port) == usedPorts.end()) {
+            assignedPlace = port;
+            break;
+        }
+    }
+
+    if (assignedPlace == -1) {
+        throw std::runtime_error("No available port (place) left");
+    }
+
+    // Kullanıcıyı room_users tablosuna ekle
+    roomUsersTable.insert("room_id", "user_id")
+        .values(roomId, userId)
+        .execute();
+
+    // Kullanıcının place (port) değerini güncelle
+    dbSession.sql("UPDATE users SET place = ? WHERE id = ?")
+        .bind(assignedPlace, userId)
+        .execute();
+
+    // Oda boyutunu güncelle
+    roomService.updateRoomSize(roomId, room.getSize());
+}
+*/
+/*
+void RoomUserService::addUserToRoom(int userId, int roomId) {
+    // Kullanıcı zaten odada mı kontrol et
+    if (isUserInRoom(roomId, userId)) {
+        throw std::runtime_error("User is already in this room");
+    }
+
+    // Odayı getir ve kapasite kontrolü yap
+    auto roomService = RoomService();
+    auto roomOpt = roomService.getRoomById(roomId);
+
+    if (!roomOpt.has_value()) {
+        throw std::runtime_error("Room does not exist");
+    }
+
+    Room room = roomOpt.value();
+
+    // Kapasite kontrolü
+    if (!room.increaseSize()) {
+        throw std::runtime_error("Room is full");
+    }
+
+    // Kullanılan portları bul
+    std::vector<int> usedPorts;
+    auto result = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE place IS NOT NULL").execute();
+    for (auto row : result) {
+        usedPorts.push_back(row[0].get<int>());
+    }
+
+    int assignedPlace = -1;
+    for (int port = 72500; port <= 72507; ++port) {
+        if (std::find(usedPorts.begin(), usedPorts.end(), port) == usedPorts.end()) {
+            assignedPlace = port;
+            break;
+        }
+    }
+
+    if (assignedPlace == -1) {
+        throw std::runtime_error("No available port (place) left");
+    }
+
+    // room_users tablosuna ekle
+    auto insertResult = roomUsersTable.insert("room_id", "user_id")
+        .values(roomId, userId)
+        .execute();
+
+    // Eğer ekleme başarısızsa portu atama!
+    if (insertResult.getAffectedItemsCount() == 0) {
+        throw std::runtime_error("Failed to add user to room");
+    }
+
+    // Kullanıcıya portu ata
+  //  dbSession.sql("UPDATE users SET place = ? WHERE id = ?")
+  dbSession.sql("UPDATE place FROM gtuverse_db.users WHERE place IS NOT NULL")     
+  .bind(assignedPlace, userId)
+        .execute();
+
+    // Oda boyutunu güncelle
+    roomService.updateRoomSize(roomId, room.getSize());
+}*/
+/*
+void RoomUserService::addUserToRoom(int userId, int roomId) {
+    // Kullanıcı zaten odada mı kontrol et
+    if (isUserInRoom(roomId, userId)) {
+        throw std::runtime_error("User is already in this room");
+    }
+
+    // Odayı getir ve kapasite kontrolü yap
+    auto roomService = RoomService();
+    auto roomOpt = roomService.getRoomById(roomId);
+
+    if (!roomOpt.has_value()) {
+        throw std::runtime_error("Room does not exist");
+    }
+
+    Room room = roomOpt.value();
+
+    // Kapasite kontrolü
+    if (!room.increaseSize()) {
+        throw std::runtime_error("Room is full");
+    }
+
+    // Kullanılan portları bul
+    std::vector<int> usedPorts;
+    auto result = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE place IS NOT NULL").execute();
+    for (auto row : result) {
+        usedPorts.push_back(row[0].get<int>());
+    }
+
+    int assignedPlace = -1;
+    for (int port = 52700; port <= 52707; ++port) {
+        if (std::find(usedPorts.begin(), usedPorts.end(), port) == usedPorts.end()) {
+            assignedPlace = port;
+            break;
+        }
+    }
+
+    if (assignedPlace == -1) {
+        throw std::runtime_error("No available port (place) left");
+    }
+
+    // room_users tablosuna ekle
+    auto insertResult = roomUsersTable.insert("room_id", "user_id")
+        .values(roomId, userId)
+        .execute();
+
+    if (insertResult.getAffectedItemsCount() == 0) {
+        throw std::runtime_error("Failed to add user to room");
+    }
+
+    // Kullanıcıya portu ata (DÜZELTİLEN SATIR)
+    dbSession.sql("UPDATE gtuverse_db.users SET place = ? WHERE id = ?")
+        .bind(assignedPlace, userId)
+        .execute();
+
+    // Oda boyutunu güncelle
+    roomService.updateRoomSize(roomId, room.getSize());
+}
+*/
+
+/*
+void RoomUserService::addUserToRoom(int userId, int roomId) {
+    // Kullanıcı zaten odada mı kontrol et
+    if (isUserInRoom(roomId, userId)) {
+        throw std::runtime_error("User is already in this room");
+    }
+
+    // Kullanıcıya zaten bir port atanmış mı? (Başka bir odada mı?)
+    auto userPlaceResult = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE id = ?")
+        .bind(userId)
+        .execute();
+    for (auto row : userPlaceResult) {
+        if (!row[0].isNull()) {
+            throw std::runtime_error("User is already in a room");
+        }
+    }
+
+    // Odayı getir ve kapasite kontrolü yap
+    auto roomService = RoomService();
+    auto roomOpt = roomService.getRoomById(roomId);
+
+    if (!roomOpt.has_value()) {
+        throw std::runtime_error("Room does not exist");
+    }
+
+    Room room = roomOpt.value();
+
+    // Kapasite kontrolü
+    if (!room.increaseSize()) {
+        throw std::runtime_error("Room is full");
+    }
+
+    // Kullanılan portları bul
+    std::vector<int> usedPorts;
+    auto result = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE place IS NOT NULL").execute();
+    for (auto row : result) {
+        usedPorts.push_back(row[0].get<int>());
+    }
+
+    int assignedPlace = -1;
+    for (int port = 52700; port <= 52707; ++port) {
+        if (std::find(usedPorts.begin(), usedPorts.end(), port) == usedPorts.end()) {
+            assignedPlace = port;
+            break;
+        }
+    }
+
+    if (assignedPlace == -1) {
+        throw std::runtime_error("No available port (place) left");
+    }
+
+    // room_users tablosuna ekle
+    auto insertResult = roomUsersTable.insert("room_id", "user_id")
+        .values(roomId, userId)
+        .execute();
+
+    if (insertResult.getAffectedItemsCount() == 0) {
+        throw std::runtime_error("Failed to add user to room");
+    }
+
+    // Kullanıcıya portu ata
+    dbSession.sql("UPDATE gtuverse_db.users SET place = ? WHERE id = ?")
+        .bind(assignedPlace, userId)
+        .execute();
+
+    // Oda boyutunu güncelle
+    roomService.updateRoomSize(roomId, room.getSize());
+}*/
+
+
+void RoomUserService::addUserToRoom(int userId, int roomId) {
+    // Kullanıcı başka bir odada mı? (place NULL değilse)
+    auto userPlaceResult = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE id = ?")
+        .bind(userId)
+        .execute();
+    for (auto row : userPlaceResult) {
+        if (!row[0].isNull()) {
+            throw std::runtime_error("User is already in a room");
+        }
+    }
+
+    // Kullanıcı zaten bu odada mı?
+    if (isUserInRoom(roomId, userId)) {
+        throw std::runtime_error("User is already in this room");
+    }
+
+    // Odayı getir ve kapasite kontrolü yap
+    auto roomService = RoomService();
+    auto roomOpt = roomService.getRoomById(roomId);
+
+    if (!roomOpt.has_value()) {
+        throw std::runtime_error("Room does not exist");
+    }
+
+    Room room = roomOpt.value();
+
+    // Kapasite kontrolü
+    if (!room.increaseSize()) {
+        throw std::runtime_error("Room is full");
+    }
+
+    // Kullanılan portları bul
+    std::vector<int> usedPorts;
+    auto result = dbSession.sql("SELECT place FROM gtuverse_db.users WHERE place IS NOT NULL").execute();
+    for (auto row : result) {
+        usedPorts.push_back(row[0].get<int>());
+    }
+
+    int assignedPlace = -1;
+    for (int port = 72500; port <= 72507; ++port) {
+        if (std::find(usedPorts.begin(), usedPorts.end(), port) == usedPorts.end()) {
+            assignedPlace = port;
+            break;
+        }
+    }
+
+    if (assignedPlace == -1) {
+        throw std::runtime_error("No available port (place) left");
+    }
+
+    // room_users tablosuna ekle
+    auto insertResult = roomUsersTable.insert("room_id", "user_id")
+        .values(roomId, userId)
+        .execute();
+
+    if (insertResult.getAffectedItemsCount() == 0) {
+        throw std::runtime_error("Failed to add user to room");
+    }
+
+    // Kullanıcıya portu ata
+    dbSession.sql("UPDATE gtuverse_db.users SET place = ? WHERE id = ?")
+        .bind(assignedPlace, userId)
+        .execute();
+
+    // Oda boyutunu güncelle
+    roomService.updateRoomSize(roomId, room.getSize());
+}
 
 std::vector<int> RoomUserService::getUsersInRoom(int roomId) {
     std::vector<int> userIds;
@@ -100,7 +414,7 @@ std::vector<std::pair<int, std::string>> RoomUserService::getUsersWithNamesInRoo
     return users;
 }
 
-
+/*
 bool RoomUserService::removeUserFromRoom(int roomId, int userId) {
     try {
         // Kullanıcı odada mı kontrol et
@@ -134,6 +448,94 @@ bool RoomUserService::removeUserFromRoom(int roomId, int userId) {
    return false;
 }
 } 
+*/
+/*
+bool RoomUserService::removeUserFromRoom(int roomId, int userId) {
+    try {
+        // Kullanıcı odada mı kontrol et
+        if (!isUserInRoom(roomId, userId)) {
+            return false; // Kullanıcı odada değilse işlem yapma
+        }
+
+        // Odayı getir
+        auto roomService = RoomService();
+        auto roomOpt = roomService.getRoomById(roomId);
+
+        if (!roomOpt.has_value()) {
+            return false;
+        }
+
+        Room room = roomOpt.value();
+        room.decreaseSize();
+
+        // Kullanıcıyı odadan çıkar
+        auto result = roomUsersTable.remove()
+            .where("room_id = :roomId AND user_id = :userId")
+            .bind("roomId", roomId)
+            .bind("userId", userId)
+            .execute();
+
+        // Oda boyutunu güncelle
+        roomService.updateRoomSize(roomId, room.getSize());
+
+        // Kullanıcının place bilgisini sıfırla
+       // dbSession.sql("UPDATE users SET place = NULL WHERE id = ?")
+         //   .bind(userId)
+         //   .execute();
+         dbSession.sql("UPDATE gtuverse_db.users SET place = ? WHERE id = ?")
+    .bind(assignedPlace, userId)
+    .execute();
+
+        return result.getAffectedItemsCount() > 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error removing user from room: " << e.what() << std::endl;
+        return false;
+    }
+}
+    */
+
+
+    bool RoomUserService::removeUserFromRoom(int roomId, int userId) {
+    try {
+        // Kullanıcı odada mı kontrol et
+        if (!isUserInRoom(roomId, userId)) {
+            return false; // Kullanıcı odada değilse işlem yapma
+        }
+
+        // Odayı getir
+        auto roomService = RoomService();
+        auto roomOpt = roomService.getRoomById(roomId);
+
+        if (!roomOpt.has_value()) {
+            return false;
+        }
+
+        Room room = roomOpt.value();
+        room.decreaseSize();
+
+        // Kullanıcıyı odadan çıkar
+        auto result = roomUsersTable.remove()
+            .where("room_id = :roomId AND user_id = :userId")
+            .bind("roomId", roomId)
+            .bind("userId", userId)
+            .execute();
+
+        // Oda boyutunu güncelle
+        roomService.updateRoomSize(roomId, room.getSize());
+
+        // Kullanıcının place bilgisini NULL yap
+        dbSession.sql("UPDATE gtuverse_db.users SET place = NULL WHERE id = ?")
+            .bind(userId)
+            .execute();
+
+        return result.getAffectedItemsCount() > 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error removing user from room: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+
 
 /*
 std::vector<Room> RoomUserService::getRoomsForUser(int userId) {

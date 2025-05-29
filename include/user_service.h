@@ -12,6 +12,8 @@ public:
      std::optional<User> getUserByUsername(const std::string& username);
    bool updateUsername(int userId, const std::string& newUsername);
  std::optional<User> getUserById(int id);
+  bool deleteUser(int userId); 
+
 
 private:
     mysqlx::Session session;

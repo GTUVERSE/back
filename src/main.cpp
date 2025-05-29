@@ -14,7 +14,7 @@ RoomUserService roomUserService;
 int main() {
     crow::SimpleApp app;
     UserService userService;
-
+//her ikisi için register
     CROW_ROUTE(app, "/register").methods("POST"_method)
     ([&](const crow::request& req){
         auto body = crow::json::load(req.body);
@@ -47,7 +47,7 @@ int main() {
     });*/
 
    
-
+//her ikisi
 CROW_ROUTE(app, "/login").methods("POST"_method)
 ([&](const crow::request& req){
     auto body = crow::json::load(req.body);
@@ -73,7 +73,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
     }
 });
 
-
+//her ikisi 
     CROW_ROUTE(app, "/users").methods("GET"_method)
     ([&](){
         auto users = userService.getAllUsers();
@@ -86,7 +86,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
     });
 
 
-
+//web
     CROW_ROUTE(app, "/roomsWEB").methods("GET"_method)([](){
         auto rooms = roomService.getAllRooms();
         json j = json::array();
@@ -102,7 +102,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
         }
         return crow::response{j.dump(2)};
     });
-    
+    //mobil
       CROW_ROUTE(app, "/rooms").methods("GET"_method)([](){
         auto rooms = roomService.getAllRooms();
         json j = json::array();
@@ -118,6 +118,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
         return crow::response{j.dump(2)};
     });
 
+    //mobil
     CROW_ROUTE(app, "/rooms/<int>").methods("GET"_method)([](int id){
         auto result = roomService.getRoomById(id);
         if (result) {
@@ -133,6 +134,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
         return crow::response{404};
     });
 
+    //web
       CROW_ROUTE(app, "/roomsWEB/<int>").methods("GET"_method)([](int id){
         auto result = roomService.getRoomById(id);
         if (result) {
@@ -290,6 +292,8 @@ CROW_ROUTE(app, "/rooms").methods("POST"_method)([](const crow::request& req){
 });*/
 // ...existing code...
 
+
+//her ikisi
 CROW_ROUTE(app, "/rooms").methods("POST"_method)([](const crow::request& req){
     try {
         auto j = json::parse(req.body);
@@ -347,6 +351,8 @@ response["url"] = url.empty() ? "" : url;
     }
 });
 
+
+//her ikisi
 CROW_ROUTE(app, "/rooms/<int>").methods("DELETE"_method)([](int id){
     bool success = roomService.deleteRoom(id);
     return crow::response{success ? 200 : 404};
@@ -396,6 +402,8 @@ CROW_ROUTE(app, "/rooms/<int>/users").methods("POST"_method)
     }
 });*/
 
+
+//her ikisi
 CROW_ROUTE(app, "/rooms/<int>/users").methods("POST"_method)
 ([&](const crow::request& req, int roomId) {
     try {
@@ -434,6 +442,7 @@ CROW_ROUTE(app, "/rooms/<int>/users").methods("POST"_method)
             return crow::response(409, error);
         }
 
+
        
         roomUserService.addUserToRoom(userId, roomId);
 
@@ -463,7 +472,7 @@ int currentSize = updatedRoomOpt.has_value() ? updatedRoomOpt->getSize() : 0;
 
 
 
-
+//her ikisi
 CROW_ROUTE(app, "/rooms/<int>/users").methods("GET"_method)
 ([&](int roomId) {
     try {
@@ -485,7 +494,7 @@ CROW_ROUTE(app, "/rooms/<int>/users").methods("GET"_method)
 
 
 
-
+//her ikisi
 CROW_ROUTE(app, "/rooms/<int>/users/<int>").methods("DELETE"_method)
 ([&](int roomId, int userId){
     try {
@@ -593,7 +602,10 @@ CROW_ROUTE(app, "/usersWEB/<int>/rooms").methods("GET"_method)
     }
 });
 
+
+
 // /users/<int>/rooms endpoint'i düzeltmesi
+
 CROW_ROUTE(app, "/users/<int>/rooms").methods("GET"_method)
 ([&](int userId) {
     try {
@@ -616,6 +628,7 @@ CROW_ROUTE(app, "/users/<int>/rooms").methods("GET"_method)
 
 
 // GET /users/username/<string> ile kullanıcıyı getir
+//kullanıcının bilgilerini (suan sadece id)isim ile get
 CROW_ROUTE(app, "/users/username/<string>")
 .methods("GET"_method)
 ([&](const crow::request&, const std::string& username){
@@ -643,6 +656,7 @@ CROW_ROUTE(app, "/users/username/<string>")
 
 
 // PUT /users/<int>/username - Kullanıcı adını değiştir
+//her iksii kullanıcı adını değiştirmek için
 CROW_ROUTE(app, "/users/<int>/username")
 .methods("PUT"_method)
 ([&](const crow::request& req, int userId) {
@@ -690,6 +704,8 @@ CROW_ROUTE(app, "/users/<int>/username")
     }
 });
 
+
+//odanın typenna göre get yapıypr mesela pop arasak tüm pop type olan odalar get olur
 CROW_ROUTE(app, "/rooms/type/<string>").methods("GET"_method)
 ([&](const std::string& type){
     try {
@@ -720,6 +736,63 @@ CROW_ROUTE(app, "/rooms/type/<string>").methods("GET"_method)
     }
 });
 
+
+
+
+CROW_ROUTE(app, "/users/<int>/place").methods("GET"_method)
+([&](int userId) {
+    try {
+        // Kullanıcının place değerini çek
+        auto result = userService.getUserById(userId);
+        if (!result.has_value()) {
+            crow::json::wvalue error;
+            error["error"] = "User not found";
+            return crow::response(404, error);
+        }
+        int place = result->place; // user.h'da var
+        crow::json::wvalue response;
+        response["user_id"] = userId;
+        //response["place"] = place == 0 ? nullptr : place; // Eğer 0 ise null döndür
+        response["place"] = result->place == 0 ? crow::json::wvalue() : result->place;
+        return crow::response(200, response);
+    } catch (const std::exception& e) {
+        crow::json::wvalue error;
+        error["error"] = e.what();
+        return crow::response(500, error);
+    }
+});
+
+
+
+CROW_ROUTE(app, "/users/<int>").methods("DELETE"_method)
+([&](int userId) {
+    try {
+        // Kullanıcı var mı kontrolü
+        auto userOpt = userService.getUserById(userId);
+        if (!userOpt.has_value()) {
+            crow::json::wvalue error;
+            error["error"] = "User not found";
+            return crow::response(404, error);
+        }
+
+        // Kullanıcıyı sil
+        bool success = userService.deleteUser(userId);
+        if (success) {
+            crow::json::wvalue result;
+            result["message"] = "User deleted successfully";
+            result["user_id"] = userId;
+            return crow::response(200, result);
+        } else {
+            crow::json::wvalue error;
+            error["error"] = "Failed to delete user";
+            return crow::response(500, error);
+        }
+    } catch (const std::exception& e) {
+        crow::json::wvalue error;
+        error["error"] = e.what();
+        return crow::response(500, error);
+    }
+});
 
     app.port(18080).multithreaded().run();
 }

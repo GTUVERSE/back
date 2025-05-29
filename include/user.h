@@ -8,6 +8,8 @@ struct User {
     std::string username;
     std::string password;
     std::string email;
+      int place; 
+     // std::optional<int> place;
 };
 
 #endif

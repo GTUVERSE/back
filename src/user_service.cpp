@@ -59,6 +59,7 @@ bool UserService::registerUser(const std::string& username, const std::string& e
     
     return true;
 }
+/*
 std::optional<User> UserService::getUserByUsername(const std::string& username) {
     try {
         auto result = usersTable
@@ -95,6 +96,45 @@ std::optional<User> UserService::getUserByUsername(const std::string& username) 
     }
     return std::nullopt;
 }
+*/std::optional<User> UserService::getUserByUsername(const std::string& username) {
+    try {
+        auto result = usersTable
+            .select("id", "username", "email", "password", "place")  // 👈 place eklendi
+            .where("username = :un")
+            .bind("un", username)
+            .execute();
+
+        // fetch exactly one row
+        auto row = result.fetchOne();
+        if (!row) {
+            return std::nullopt;  // eşleşme yok
+        }
+
+        User u;
+        u.id       = row[0].get<int>();
+        u.username = row[1].get<std::string>();
+
+        if (!row[2].isNull()) {
+            u.email = row[2].get<std::string>();
+        } else {
+            u.email = "";
+        }
+
+        u.password = row[3].get<std::string>();
+        u.place    = row[4].isNull() ? -1 : row[4].get<int>();  // 👈 place değeri kontrolü
+
+        return u;
+    }
+    catch (const mysqlx::Error &err) {
+        std::cerr << "getUserByUsername DB error: " << err.what() << std::endl;
+    }
+    catch (const std::exception &ex) {
+        std::cerr << "getUserByUsername error: " << ex.what() << std::endl;
+    }
+    return std::nullopt;
+}
+
+
 
 
 
@@ -120,7 +160,7 @@ std::optional<User> UserService::loginUser(const std::string& username, const st
 
 
 
-
+/*
 std::vector<User> UserService::getAllUsers() {
     std::vector<User> resultList;
     try {
@@ -130,6 +170,27 @@ std::vector<User> UserService::getAllUsers() {
             user.id = row[0].get<int>();
             user.username = row[1].get<std::string>();
             user.password = row[2].get<std::string>();
+            resultList.push_back(user);
+        }
+    } catch (...) {}
+    return resultList;
+}
+*/
+
+std::vector<User> UserService::getAllUsers() {
+    std::vector<User> resultList;
+    try {
+        auto result = usersTable
+            .select("id", "username", "password", "email", "place")  // 👈 ek alanlar
+            .execute();
+
+        for (auto row : result) {
+            User user;
+            user.id = row[0].get<int>();
+            user.username = row[1].get<std::string>();
+            user.password = row[2].get<std::string>();
+            user.email = row[3].isNull() ? "" : row[3].get<std::string>();  // 👈 null kontrolü
+            user.place = row[4].isNull() ? -1 : row[4].get<int>();          // 👈 null kontrolü
             resultList.push_back(user);
         }
     } catch (...) {}
@@ -172,7 +233,7 @@ bool UserService::updateUsername(int userId, const std::string& newUsername) {
         return false;
     }
 }
-
+/*
 
 std::optional<User> UserService::getUserById(int userId) {
     try {
@@ -196,5 +257,44 @@ std::optional<User> UserService::getUserById(int userId) {
     } catch (const std::exception& e) {
         std::cerr << "Error in getUserById: " << e.what() << std::endl;
         return std::nullopt;
+    }
+}
+    */
+
+
+std::optional<User> UserService::getUserById(int userId) {
+    try {
+        auto result = usersTable
+            .select("id", "username", "password", "email", "place")  // 👈 place eklendi
+            .where("id = :id")
+            .bind("id", userId)
+            .execute();
+
+        if (result.count() > 0) {
+            auto row = result.fetchOne();
+            User user;
+            user.id = row[0].get<int>();
+            user.username = row[1].get<std::string>();
+            user.password = row[2].get<std::string>();
+            user.email = row[3].get<std::string>();
+            user.place = row[4].isNull() ? -1 : row[4].get<int>();  // 👈 place kontrolü
+            return user;
+        }
+
+        return std::nullopt;
+    } catch (const std::exception& e) {
+        std::cerr << "Error in getUserById: " << e.what() << std::endl;
+        return std::nullopt;
+    }
+}
+
+
+
+bool UserService::deleteUser(int userId) {
+    try {
+        auto result = usersTable.remove().where("id = :id").bind("id", userId).execute();
+        return result.getAffectedItemsCount() > 0;
+    } catch (...) {
+        return false;
     }
 }
