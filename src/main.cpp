@@ -794,5 +794,51 @@ CROW_ROUTE(app, "/users/<int>").methods("DELETE"_method)
     }
 });
 
+
+
+CROW_ROUTE(app, "/rooms/<int>/api").methods("GET"_method)
+([&](int roomId) {
+    auto roomOpt = roomService.getRoomById(roomId);
+    if (!roomOpt.has_value()) {
+        crow::json::wvalue error;
+        error["error"] = "Room not found";
+        return crow::response(404, error);
+    }
+    crow::json::wvalue response;
+    response["room_id"] = roomId;
+    response["api"] = roomOpt->getApi();
+    return crow::response(200, response);
+});
+
+
+
+CROW_ROUTE(app, "/rooms/api").methods("PUT"_method)
+([&]() {
+    try {
+        // room.h'daki default api değerini kullan
+        std::string newApi = "192.168.0.1";
+
+        // Tüm odaların api alanını güncelle
+        auto result = roomService.updateAllRoomsApi(newApi);
+        if (result) {
+            crow::json::wvalue response;
+            response["message"] = "All rooms' api updated";
+            response["api"] = newApi;
+            return crow::response(200, response);
+        } else {
+            crow::json::wvalue error;
+            error["error"] = "Failed to update api for all rooms";
+            return crow::response(500, error);
+        }
+    } catch (const std::exception& e) {
+        crow::json::wvalue error;
+        error["error"] = e.what();
+        return crow::response(500, error);
+    }
+});
+
+
     app.port(18080).multithreaded().run();
 }
+
+

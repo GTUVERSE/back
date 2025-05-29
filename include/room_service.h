@@ -25,6 +25,10 @@ public:
     bool roomExistsByName(const std::string& name) const;
     void updateRoomSize(int roomId, int newSize);
     bool incrementRoomSize(int roomId);
+bool updateAllRoomsApi(const std::string& newApi); 
+
+
+
 
 bool updateRoom(const Room& room);
     std::vector<Room> getRoomsByType(const std::string& type) const;

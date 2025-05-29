@@ -86,7 +86,8 @@ std::optional<Room> RoomService::getRoomById(int id) const {
 
 std::optional<Room> RoomService::getRoomById(int id) const {
     auto result = roomsTable
-                    .select("id", "name", "size", "type", "url")
+                   // .select("id", "name", "size", "type", "url")
+                   .select("id", "name", "size", "type", "url", "api")
                     .where("id = :id").bind("id", id)
                     .execute();
 
@@ -100,11 +101,14 @@ std::optional<Room> RoomService::getRoomById(int id) const {
        // room.setUrl(row[4].get<std::string>()); // url dışarıdan atanıyor
        
 room.setUrl(row[4].isNull() ? "" : row[4].get<std::string>());
+room.setApi(row[5].isNull() ? "192.168.0.1" : row[5].get<std::string>());
 
        return room;
     }
     return std::nullopt;
 }
+
+/*
 void RoomService::createRoom(const Room& room) {
     if (roomExistsByName(room.getName())) {
         throw std::runtime_error("Room with the same name already exists");
@@ -126,12 +130,14 @@ void RoomService::createRoom(const Room& room) {
               .bind("id", newId)
               .execute();
 }
+              */
 
 
 std::vector<Room> RoomService::getAllRooms() const {
     std::vector<Room> resultList;
     auto result = roomsTable
-                    .select("id", "name", "size", "type", "url")
+                  //  .select("id", "name", "size", "type", "url")
+                  .select("id", "name", "size", "type", "url", "api")
                     .execute();
 
     for (auto row : result) {
@@ -144,6 +150,8 @@ std::vector<Room> RoomService::getAllRooms() const {
        // room.setUrl(row[4].get<std::string>()); // url sonradan atanıyor
       
 room.setUrl(row[4].isNull() ? "" : row[4].get<std::string>());
+
+room.setApi(row[5].isNull() ? "192.168.0.1" : row[5].get<std::string>());
 
        resultList.push_back(room);
     }
@@ -224,3 +232,36 @@ std::vector<Room> RoomService::getRoomsByType(const std::string& type) const {
 }
 
 
+
+void RoomService::createRoom(const Room& room) {
+    if (roomExistsByName(room.getName())) {
+        throw std::runtime_error("Room with the same name already exists");
+    }
+
+    auto result = roomsTable.insert("name", "size", "type", "api")
+                            .values(room.getName(), room.getSize(), room.getType(), room.getApi())
+                            .execute();
+
+    int newId = result.getAutoIncrementValue();
+
+    // URL oluştur
+    std::string url = "video/" + std::to_string(newId) + "/room";
+
+    // URL’yi güncelle
+    roomsTable.update()
+              .set("url", url)
+              .where("id = :id")
+              .bind("id", newId)
+              .execute();
+}
+
+
+
+bool RoomService::updateAllRoomsApi(const std::string& newApi) {
+    try {
+        auto result = roomsTable.update().set("api", newApi).execute();
+        return result.getAffectedItemsCount() > 0;
+    } catch (...) {
+        return false;
+    }
+}

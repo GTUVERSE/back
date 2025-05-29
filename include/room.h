@@ -11,6 +11,7 @@ private:
      std::string type;
         std::string url;
     const int capacity = 8;
+       std::string api = "192.168.0.1"; 
 
 public:
     Room();
@@ -34,6 +35,9 @@ public:
      bool decreaseSize(); // Odadan kullanıcı çıktığında size azalt
   const std::string& getType() const;
     void setType(const std::string& t);
+       const std::string& getApi() const { return api; }
+       void setApi(const std::string& newApi) { api = newApi; }
+ 
 };
 
 #endif
