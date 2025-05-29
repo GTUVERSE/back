@@ -100,7 +100,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
                  {"url", room.getUrl()} 
             });
         }
-        return crow::response{j.dump()};
+        return crow::response{j.dump(2)};
     });
     
       CROW_ROUTE(app, "/rooms").methods("GET"_method)([](){
@@ -115,7 +115,7 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
                  {"url", room.getUrl()} 
             });
         }
-        return crow::response{j.dump()};
+        return crow::response{j.dump(2)};
     });
 
     CROW_ROUTE(app, "/rooms/<int>").methods("GET"_method)([](int id){
@@ -125,7 +125,8 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
                 {"id", result->getId()},
                 {"name", result->getName()},
                 {"size", result->getSize()},
-                {"capacity", result->getCapacity()}
+                {"capacity", result->getCapacity()},
+                {"url", result->getUrl()} // URL eklendi
             };
             return crow::response{j.dump()};
         }
@@ -140,7 +141,8 @@ CROW_ROUTE(app, "/login").methods("POST"_method)
                 {"name", result->getName()},
                 {"size", result->getSize()},
                 {"type", result->getType()}, // Oda tipi eklendi
-                {"capacity", result->getCapacity()}
+                {"capacity", result->getCapacity()},
+                 {"url", result->getUrl()} // URL eklendi
             };
             return crow::response{j.dump()};
         }
@@ -435,9 +437,13 @@ CROW_ROUTE(app, "/rooms/<int>/users").methods("POST"_method)
        
         roomUserService.addUserToRoom(userId, roomId);
 
-      
         room.setSize(room.getSize() + 1);
         roomService.updateRoom(room);
+      auto updatedRoomOpt = roomService.getRoomById(roomId);
+int currentSize = updatedRoomOpt.has_value() ? updatedRoomOpt->getSize() : 0;
+
+       // room.setSize(room.getSize() + 1);
+       // roomService.updateRoom(room);
 
         crow::json::wvalue success;
         success["message"] = "User added to room";
@@ -705,7 +711,7 @@ CROW_ROUTE(app, "/rooms/type/<string>").methods("GET"_method)
                 {"capacity", room.getCapacity()}
             });
         }
-        return crow::response(200, j.dump());
+        return crow::response(200, j.dump(2));
 
     } catch (const std::exception& e) {
         crow::json::wvalue error;

@@ -30,7 +30,7 @@ RoomUserService::RoomUserService()
       "?ssl-mode=DISABLED"
     ),
     dbSchema(dbSession.getSchema("gtuverse_db")),
-    roomUsersTable(dbSchema.getTable("rooms_users"))
+    roomUsersTable(dbSchema.getTable("room_users"))
 {}
 
 
