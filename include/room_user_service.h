@@ -19,6 +19,7 @@ public:
     bool removeUserFromRoom(int roomId, int userId);
     std::vector<Room> getRoomsForUser(int userId);
     bool isUserInRoom(int roomId, int userId);
+  
 
 };
 

@@ -816,7 +816,7 @@ CROW_ROUTE(app, "/rooms/api").methods("PUT"_method)
 ([&]() {
     try {
         // room.h'daki default api değerini kullan
-        std::string newApi = "192.168.0.1";
+        std::string newApi = "192.167.0.1";
 
         // Tüm odaların api alanını güncelle
         auto result = roomService.updateAllRoomsApi(newApi);

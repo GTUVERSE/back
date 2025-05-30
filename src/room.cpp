@@ -70,3 +70,11 @@ const std::string& Room::getUrl() const {
 void Room::setUrl(const std::string& newUrl) {
     url = newUrl;
 }
+
+
+const std::string& Room::getApi() const {
+    return api;
+}
+void Room::setApi(const std::string& newApi) {
+    api = newApi;
+}
